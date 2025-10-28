@@ -79,7 +79,7 @@ public class ApiController {
                     .skip(1) // Skip header if present
                     .map(line -> line.split(",")) // Split by comma
                     .filter(parts -> parts.length >= 2 && !parts[0].trim().isEmpty() && !parts[1].trim().isEmpty())
-                    .map(parts -> new Contact(parts[0].trim(), parts[1].trim()))
+                    .map(parts -> new Contact(parts[0].trim(), Collections.singletonList(parts[1].trim())))
                     .collect(Collectors.toList());
             logger.info("Successfully read {} contacts from {}", contacts.size(), CONTACTS_CSV_FILE.getFileName());
             return ResponseEntity.ok(contacts);
