@@ -1,0 +1,14 @@
+2025/10/28-11:54:18.824 1a78 Reusing MANIFEST C:\Users\shiva\Downloads\third party communication\whatsapp_session\Default\Local Storage\leveldb/MANIFEST-000001
+2025/10/28-11:54:18.838 1a78 Recovering log #38
+2025/10/28-11:54:18.839 1a78 Level-0 table #41: started
+2025/10/28-11:54:18.845 1a78 Level-0 table #41: 13617 bytes OK
+2025/10/28-11:54:18.851 1a78 Delete type=0 #38
+2025/10/28-11:54:18.852 4b58 Compacting 4@0 + 1@1 files
+2025/10/28-11:54:18.862 4b58 Generated table #43@0: 815 keys, 15086 bytes
+2025/10/28-11:54:18.862 4b58 Compacted 4@0 + 1@1 files => 15086 bytes
+2025/10/28-11:54:18.863 4b58 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/10/28-11:54:18.864 4b58 Delete type=2 #30
+2025/10/28-11:54:18.864 4b58 Delete type=2 #32
+2025/10/28-11:54:18.864 4b58 Delete type=2 #36
+2025/10/28-11:54:18.865 4b58 Delete type=2 #39
+2025/10/28-11:54:18.865 4b58 Delete type=2 #41

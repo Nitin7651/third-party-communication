@@ -1,0 +1,14 @@
+[4752:19080:1028/115847.992:INFO:components\enterprise\browser\controller\chrome_browser_cloud_management_controller.cc:206] No machine level policy manager exists.
+[380:3020:1028/115848.316:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[24160:22548:1028/115848.346:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[22000:10592:1028/115848.753:VERBOSE1:components\viz\service\main\viz_main_impl.cc:86] VizNullHypothesis is disabled (not a warning)
+[8544:3168:1028/115849.131:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[8284:17276:1028/115849.232:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[2948:21952:1028/115849.255:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[4752:19080:1028/115849.677:INFO:CONSOLE:113] "Event handler of 'x-storagemutated-1' event must be added on the initial evaluation of worker script.", source: https://static.whatsapp.net/rsrc.php/v4/ys/r/h9nnnsw2izp.js (113)
+[20300:14596:1028/115849.807:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[4752:19080:1028/115901.480:INFO:CONSOLE:77] "ErrorUtils caught an error:
+
+mms4-fetch-host-timeout
+
+Subsequent non-fatal errors won't be logged; see https://fburl.com/debugjs. [object Object]", source: https://static.whatsapp.net/rsrc.php/v4/yz/r/LQYfgSSFYxz.js (77)
