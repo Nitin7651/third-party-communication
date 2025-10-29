@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import third.party.communication.whatsapp.dto.Contact;
 import third.party.communication.whatsapp.dto.DefaultResponse;
 import third.party.communication.whatsapp.dto.HistoryEntry;
-import third.party.communication.whatsapp.dto.SendRequest; // Expects numbers as String
+import third.party.communication.whatsapp.dto.SendRequest; // Expects List<String> numbers
+import third.party.communication.whatsapp.service.ContactService; // Import ContactService
 import third.party.communication.whatsapp.service.WhatsappService;
 
 import org.slf4j.Logger;
@@ -19,13 +20,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays; // Import Arrays
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000") // Allow requests from your React app
@@ -33,62 +32,87 @@ public class ApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiController.class);
     private final WhatsappService whatsappService;
+    private final ContactService contactService; // Inject ContactService
 
     // --- File Paths ---
+    // Paths are now primarily managed within their respective services
     private final Path MSG_FILE = Paths.get(System.getProperty("user.dir"), "message.txt");
-    private final Path NUMS_FILE = Paths.get(System.getProperty("user.dir"), "numbers.txt");
     private final Path HISTORY_LOG_FILE = Paths.get(System.getProperty("user.dir"), "history.log");
-    private final Path CONTACTS_CSV_FILE = Paths.get(System.getProperty("user.dir"), "contacts.csv");
+
 
     @Autowired
-    public ApiController(WhatsappService whatsappService) {
+    public ApiController(WhatsappService whatsappService, ContactService contactService) { // Inject ContactService
         this.whatsappService = whatsappService;
+        this.contactService = contactService; // Assign injected service
     }
 
     /**
-     * API Endpoint to get default message and numbers from files.
+     * API Endpoint to get default message from file.
      */
     @GetMapping("/get-defaults")
     public ResponseEntity<DefaultResponse> getDefaults() {
         logger.info("Received GET request for /get-defaults");
         try {
             String msg = readFileOrDefault(MSG_FILE, "Default message if file not found.");
-            // Read numbers.txt content for the textarea default
-            String nums = readFileOrDefault(NUMS_FILE, ""); // Use empty string if not found
-            return ResponseEntity.ok(new DefaultResponse(msg, nums));
+            // DefaultResponse no longer includes numbers field
+            return ResponseEntity.ok(new DefaultResponse(msg, null)); // Pass null for numbers
         } catch (Exception e) {
             logger.error("Error processing /get-defaults: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new DefaultResponse("Error loading message.", "Error loading numbers."));
+                    .body(new DefaultResponse("Error loading message.", null));
         }
     }
 
     /**
-     * API Endpoint to get contacts from CSV (Optional feature)
+     * API Endpoint to get contacts using ContactService.
      */
     @GetMapping("/get-contacts")
     public ResponseEntity<List<Contact>> getContacts() {
         logger.info("Received GET request for /get-contacts");
-        List<Contact> contacts = new ArrayList<>();
-        if (!Files.exists(CONTACTS_CSV_FILE)) {
-            logger.warn("Contacts file not found: {}", CONTACTS_CSV_FILE.toAbsolutePath());
-            return ResponseEntity.ok(contacts); // Return empty list
-        }
-        try (Stream<String> lines = Files.lines(CONTACTS_CSV_FILE, StandardCharsets.UTF_8)) {
-            contacts = lines
-                    .skip(1) // Skip header if present
-                    .map(line -> line.split(",")) // Split by comma
-                    .filter(parts -> parts.length >= 2 && !parts[0].trim().isEmpty() && !parts[1].trim().isEmpty())
-                    .map(parts -> new Contact(parts[0].trim(), Collections.singletonList(parts[1].trim())))
-                    .collect(Collectors.toList());
-            logger.info("Successfully read {} contacts from {}", contacts.size(), CONTACTS_CSV_FILE.getFileName());
+        try {
+            List<Contact> contacts = contactService.loadContactsFromCsv();
             return ResponseEntity.ok(contacts);
-        } catch (IOException e) {
-            logger.error("Error reading contacts file {}: {}", CONTACTS_CSV_FILE.toAbsolutePath(), e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         } catch (Exception e) {
-            logger.error("Unexpected error processing contacts file {}: {}", CONTACTS_CSV_FILE.toAbsolutePath(), e.getMessage(), e);
+            logger.error("Unexpected error in /get-contacts controller: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+
+    /**
+     * NEW: API Endpoint to add a contact to the CSV via ContactService.
+     */
+    @PostMapping("/add-contact")
+    public ResponseEntity<Map<String, Object>> addContact(@RequestBody Contact newContact) {
+        logger.info("Received POST request for /add-contact: Name={}, Number={}", newContact.getName(), newContact.getNumber());
+        // Basic validation moved to service, but controller can do initial checks
+        if (newContact == null || newContact.getNumber() == null) {
+            logger.warn("Received invalid contact data in request body.");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid contact data provided."));
+        }
+        // Clean number before passing to service (or let service handle it)
+        String cleanedNumber = newContact.getNumber().replaceAll("\\D", "");
+        if (!cleanedNumber.matches("\\d{10,}")) { // Require at least 10 digits
+            logger.warn("Invalid phone number format for add contact: {}", newContact.getNumber());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Phone number must contain at least 10 digits."));
+        }
+        newContact.setNumber(cleanedNumber); // Use the cleaned number
+
+        if (newContact.getName() == null || newContact.getName().trim().isEmpty()) {
+            logger.warn("Invalid name for add contact: Name is empty.");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Contact name cannot be empty."));
+        }
+        newContact.setName(newContact.getName().trim());
+
+        boolean success = contactService.addContactToCsv(newContact);
+
+        if (success) {
+            logger.info("Contact added successfully via service.");
+            // Return success and the potentially modified contact (e.g., cleaned number)
+            return ResponseEntity.ok(Map.of("success", true, "contact", newContact));
+        } else {
+            logger.error("ContactService failed to add contact to CSV.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to save contact to CSV. Check server logs."));
         }
     }
 
@@ -99,7 +123,7 @@ public class ApiController {
     public ResponseEntity<List<HistoryEntry>> getHistory() {
         logger.info("Received GET request for /get-history");
         if (!Files.exists(HISTORY_LOG_FILE)) {
-            logger.warn("History file not found: {}", HISTORY_LOG_FILE);
+            logger.warn("History file not found: {}", HISTORY_LOG_FILE.toAbsolutePath());
             return ResponseEntity.ok(Collections.emptyList());
         }
         try {
@@ -109,58 +133,43 @@ public class ApiController {
                     .map(String::trim)
                     .filter(line -> !line.isEmpty())
                     .map(line -> {
-                        String[] parts = line.split(" \\| ", 4);
+                        String[] parts = line.split(" \\| ", 4); // Split by " | ", limit 4 parts
                         if (parts.length == 4) {
+                            // Create HistoryEntry DTO
                             return new HistoryEntry(parts[0], parts[1], parts[2], parts[3]);
                         } else {
                             logger.warn("Skipping malformed history line: {}", line);
-                            return null;
+                            return null; // Ignore lines that don't split correctly
                         }
                     })
-                    .filter(java.util.Objects::nonNull)
+                    .filter(java.util.Objects::nonNull) // Filter out nulls from malformed lines
                     .collect(Collectors.toList());
             return ResponseEntity.ok(history);
         } catch (IOException e) {
-            logger.error("Error reading history log file '{}': {}", HISTORY_LOG_FILE, e.getMessage());
+            logger.error("Error reading history log file '{}': {}", HISTORY_LOG_FILE.toAbsolutePath(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
     }
 
     /**
      * API Endpoint to start the message sending script asynchronously.
-     * Receives numbers as a String, splits into List before calling service.
-     */
-    /**
-     * API Endpoint to start the message sending script asynchronously.
-     * Receives numbers as a String, splits into List before calling service.
+     * Accepts List<String> numbers directly from SendRequest DTO.
      */
     @PostMapping("/run-script")
-    public ResponseEntity<Map<String, String>> runScript(@RequestBody SendRequest request) { // SendRequest expects String numbers
+    public ResponseEntity<Map<String, String>> runScript(@RequestBody SendRequest request) {
         logger.info("Received POST request for /run-script");
         String msgContent = request.getMessage();
-        String numsContent = request.getNumbers(); // <-- Receive as String
-
-        // --- FIX: Split the numbers string here ---
-        List<String> numbersList = null;
-        if (numsContent != null && !numsContent.trim().isEmpty()) {
-            numbersList = Arrays.stream(numsContent.split("\\r?\\n")) // Split by newline
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty() && s.matches("[0-9]+")) // Keep only non-empty digit strings
-                    .collect(Collectors.toList());
-        }
-        // ------------------------------------------
+        List<String> selectedNumbers = request.getNumbers(); // Get the list directly
 
         // Basic validation
         if (msgContent == null || msgContent.trim().isEmpty()) {
             logger.warn("Received invalid request for /run-script: Message empty.");
             return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Message field cannot be empty."));
         }
-        // --- FIX: Check the split list ---
-        if (numbersList == null || numbersList.isEmpty()) {
-            logger.warn("Received invalid request for /run-script: No valid numbers found in input.");
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "No valid phone numbers entered."));
+        if (selectedNumbers == null || selectedNumbers.isEmpty()) {
+            logger.warn("Received invalid request for /run-script: No numbers selected/provided.");
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "No contact numbers were selected or entered."));
         }
-        // ---------------------------------
 
         // Save message back to file
         try {
@@ -171,47 +180,31 @@ public class ApiController {
         }
 
         // Start the Selenium logic in a new thread
-        // --- FIX: Pass the created numbersList ---
-        logger.info("Triggering async Selenium send logic for {} numbers...", numbersList.size());
-        whatsappService.runSeleniumLogic(msgContent, numbersList); // Pass the List<String>
-        // ----------------------------------------
+        logger.info("Triggering async Selenium send logic for {} numbers...", selectedNumbers.size());
+        whatsappService.runSeleniumLogic(msgContent, selectedNumbers); // Pass the List<String>
 
         // Respond immediately
         return ResponseEntity.ok(Map.of("status", "success", "message", "Script started! Check application logs for progress."));
     }
 
     /**
-     * API ENDPOINT FOR DELETION
-     * Receives numbers as a String, splits into List before calling service.
+     * API ENDPOINT FOR DELETION (If keeping)
+     * Accepts List<String> numbers directly from SendRequest DTO.
      */
     @PostMapping("/delete-last-message")
-    public ResponseEntity<Map<String, String>> deleteLastMessage(@RequestBody SendRequest request) { // SendRequest expects String numbers
+    public ResponseEntity<Map<String, String>> deleteLastMessage(@RequestBody SendRequest request) { // Re-using SendRequest DTO
         logger.info("Received POST request for /delete-last-message");
-        String numsContent = request.getNumbers(); // <-- Receive as String
+        List<String> selectedNumbers = request.getNumbers(); // Get the list directly
 
-        // --- FIX: Split the numbers string here ---
-        List<String> numbersList = null;
-        if (numsContent != null && !numsContent.trim().isEmpty()) {
-            numbersList = Arrays.stream(numsContent.split("\\r?\\n")) // Split by newline
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty() && s.matches("[0-9]+")) // Keep only non-empty digit strings
-                    .collect(Collectors.toList());
+        if (selectedNumbers == null || selectedNumbers.isEmpty()) {
+            logger.warn("Received invalid request for /delete-last-message: No numbers selected.");
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "No valid phone numbers selected for deletion."));
         }
-        // ------------------------------------------
-
-        // --- FIX: Check the split list ---
-        if (numbersList == null || numbersList.isEmpty()) {
-            logger.warn("Received invalid request for /delete-last-message: No valid numbers found in input.");
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "No valid phone numbers entered for deletion."));
-        }
-        // ---------------------------------
 
         try {
             // Start the Selenium delete logic in a new thread
-            // --- FIX: Pass the created numbersList ---
-            logger.info("Triggering async Selenium delete logic for {} numbers...", numbersList.size());
-            whatsappService.runSeleniumDeleteLogic(numbersList); // Pass the List<String>
-            // ----------------------------------------
+            logger.info("Triggering async Selenium delete logic for {} numbers...", selectedNumbers.size());
+            whatsappService.runSeleniumDeleteLogic(selectedNumbers); // Pass the List<String>
 
             // Respond immediately
             return ResponseEntity.ok(Map.of("status", "success", "message", "Delete script started! Check application logs for progress."));
@@ -230,13 +223,15 @@ public class ApiController {
     private String readFileOrDefault(Path path, String defaultValue) {
         try {
             if (Files.exists(path)) {
-                logger.debug("Reading file: {}", path);
+                logger.debug("Reading file: {}", path.toAbsolutePath());
                 return Files.readString(path, StandardCharsets.UTF_8);
             } else {
                 logger.warn("File not found: {}. Using default value.", path.toAbsolutePath());
             }
         } catch (IOException e) {
             logger.error("Error reading file {}: {}", path.toAbsolutePath(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error reading file {}: {}", path.toAbsolutePath(), e.getMessage());
         }
         return defaultValue;
     }

@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor // Constructor for creating objects easily
 public class Contact {
     private String name;
-    private List<String> number;
+    private String number;
 
     // Manual Getters/Setters/Constructors if not using Lombok
 }

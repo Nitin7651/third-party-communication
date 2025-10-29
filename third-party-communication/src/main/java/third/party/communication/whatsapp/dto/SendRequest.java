@@ -5,9 +5,11 @@ import lombok.Setter;
 import java.util.List; // <-- Import List
 
 
+
+
 @Getter
 @Setter
 public class SendRequest {
     private String message;
-    private String numbers; // <<< MUST BE List<String>
+    private List<String> numbers; // Expects a List of numbers
 }
