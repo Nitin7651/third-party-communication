@@ -130,50 +130,68 @@ public class WhatsappService {
                 driver.get(link);
 
                 WebElement chatBoxElement = null;
-                boolean isValidNumber = true;
+                boolean isChatReady = false; // Use a specific flag for success
+
                 try {
-                    logger.debug("Waiting for chat input or invalid number popup...");
-                    WebDriverWait chatWait = new WebDriverWait(driver, Duration.ofSeconds(15));
+                    logger.debug("Waiting for chat input OR invalid number indicators (max 20s)...");
+                    WebDriverWait chatWait = new WebDriverWait(driver, Duration.ofSeconds(20)); // Increased wait to 20s
+
+                    // --- NEW 3-PART CHECK ---
+                    // Wait for ANY of the 3 possible outcomes
                     boolean conditionMet = chatWait.until(ExpectedConditions.or(
+                            // 1. Success: Chat box is present
                             ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@data-lexical-editor='true'][@role='textbox']")),
-                            ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@data-testid='popup-controls-ok']"))
+                            // 2. Fail: Invalid number POPUP
+                            ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@data-testid='popup-controls-ok']")),
+                            // 3. Fail: Invalid number INLINE TEXT (Selector targets the specific message text)
+                            ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@data-testid='conversation-panel-body']//div[contains(@class, '_ak-S') and contains(text(), 'not on WhatsApp')]"))
                     ));
+                    // --- END NEW CHECK ---
+
                     if (conditionMet) {
+                        // Now, check *which* condition was met
                         try {
+                            // Check 1: Invalid Popup
                             WebElement invalidNumPopup = driver.findElement(By.xpath("//div[@data-testid='popup-controls-ok']"));
                             logger.warn("❌ {} is not a valid WhatsApp number (popup detected). Skipping.", num);
-                            logStatus(numDigits, "Invalid Number", "N/A");
+                            logStatus(numDigits, "Invalid Number", "Popup");
                             invalidNumPopup.click();
-                            isValidNumber = false;
                             Thread.sleep(1000);
-                        } catch (org.openqa.selenium.NoSuchElementException e) {
+                        } catch (org.openqa.selenium.NoSuchElementException e1) {
                             try {
-                                chatBoxElement = driver.findElement(By.xpath("//div[@data-lexical-editor='true'][@role='textbox']"));
-                                logger.info("Chat box found for {} ({}). Proceeding...", num, numDigits);
+                                // Check 2: Invalid Inline Text
+                                // Re-check for the element as the condition only confirms presence
+                                driver.findElement(By.xpath("//div[@data-testid='conversation-panel-body']//div[contains(@class, '_ak-S') and contains(text(), 'not on WhatsApp')]"));
+                                logger.warn("❌ {} is not a valid WhatsApp number (inline text detected). Skipping.", num);
+                                logStatus(numDigits, "Invalid Number", "Inline Text");
                             } catch (org.openqa.selenium.NoSuchElementException e2) {
-                                logger.error("Neither chat box nor OK button found for {} ({}) after wait succeeded. Skipping.", num, numDigits);
-                                logStatus(numDigits, "Chat Not Ready", "Error - Element Confusion");
-                                isValidNumber = false;
+                                try {
+                                    // Check 3: Must be the Chat Box
+                                    chatBoxElement = driver.findElement(By.xpath("//div[@data-lexical-editor='true'][@role='textbox']"));
+                                    logger.info("Chat box found for {} ({}). Proceeding...", num, numDigits);
+                                    isChatReady = true; // This is the only success case
+                                } catch (org.openqa.selenium.NoSuchElementException e3) {
+                                    logger.error("Neither chat box nor error indicators found for {} ({}) after wait succeeded. Skipping.", num, numDigits);
+                                    logStatus(numDigits, "Chat Not Ready", "Error - Element Confusion");
+                                }
                             }
                         }
                     } else {
                         logger.error("ExpectedConditions.or() returned false unexpectedly for {} ({}). Skipping.", num, numDigits);
                         logStatus(numDigits, "Chat Not Ready", "Error - Wait Condition Failed");
-                        isValidNumber = false;
                     }
                 } catch (org.openqa.selenium.TimeoutException e) {
-                    logger.warn("Chat not ready for {} ({}) within 15 seconds. Skipping.", num, numDigits);
+                    logger.warn("Chat not ready for {} ({}) within 20 seconds. Skipping. (Timeout)", num, numDigits);
                     logStatus(numDigits, "Chat Not Ready", "Timeout");
-                    isValidNumber = false;
                 } catch (Exception e) {
                     logger.error("Unexpected error checking chat readiness for {} ({}): {}", num, numDigits, e.getMessage(), e);
                     logStatus(numDigits, "Chat Not Ready", "Error");
-                    isValidNumber = false;
                 }
 
-                if (!isValidNumber) {
-                    continue;
+                if (!isChatReady) { // Check the success flag
+                    continue; // Skip to the next number
                 }
+
 
                 boolean imageAttached = false;
                 WebElement imageSendButton = null; // Store image send button if found
@@ -191,6 +209,7 @@ public class WhatsappService {
                         fileInput.sendKeys(imageAbsolutePath);
                         // Wait for the send button in the image preview
                         imageSendButton = new WebDriverWait(driver, Duration.ofSeconds(20)).until(
+                                // Use aria-label selector for send button in image preview too
                                 ExpectedConditions.elementToBeClickable(By.xpath("//button[@aria-label='Send']"))
                         );
                         imageAttached = true;

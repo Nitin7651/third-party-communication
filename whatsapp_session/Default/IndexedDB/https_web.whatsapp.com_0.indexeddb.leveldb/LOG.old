@@ -1,0 +1,24 @@
+2025/10/31-10:44:35.636 4e9c Reusing MANIFEST C:\Users\shiva\Downloads\third party communication\whatsapp_session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/10/31-10:44:35.637 4e9c Recovering log #95
+2025/10/31-10:44:35.640 4e9c Reusing old log C:\Users\shiva\Downloads\third party communication\whatsapp_session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000095.log 
+2025/10/31-10:44:44.977 4e9c Level-0 table #101: started
+2025/10/31-10:44:44.982 4e9c Level-0 table #101: 47140 bytes OK
+2025/10/31-10:44:44.984 4e9c Delete type=0 #95
+2025/10/31-10:44:44.985 4e9c Manual compaction at level-0 from '\x00)\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00*\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/31-10:44:48.970 2b10 Compacting 1@1 + 2@2 files
+2025/10/31-10:44:49.049 2b10 Generated table #102@1: 40073 keys, 2200429 bytes
+2025/10/31-10:44:49.120 2b10 Generated table #103@1: 10858 keys, 333710 bytes
+2025/10/31-10:44:49.121 2b10 Compacted 1@1 + 2@2 files => 2534139 bytes
+2025/10/31-10:44:49.122 2b10 compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/10/31-10:44:49.122 2b10 Delete type=2 #97
+2025/10/31-10:44:49.123 2b10 Delete type=2 #98
+2025/10/31-10:44:49.123 2b10 Delete type=2 #101
+2025/10/31-10:44:54.599 2b10 Level-0 table #105: started
+2025/10/31-10:44:54.608 2b10 Level-0 table #105: 271136 bytes OK
+2025/10/31-10:44:54.610 2b10 Delete type=0 #100
+2025/10/31-10:44:54.612 2b10 Manual compaction at level-0 from '\x00*\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00+\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/31-10:44:56.475 2b10 Compacting 1@1 + 2@2 files
+2025/10/31-10:44:56.538 2b10 Generated table #106@1: 41308 keys, 2201577 bytes
+2025/10/31-10:44:56.553 2b10 Generated table #107@1: 12075 keys, 433491 bytes
+2025/10/31-10:44:56.553 2b10 Compacted 1@1 + 2@2 files => 2635068 bytes
+2025/10/31-10:44:56.554 2b10 compacted to: files[ 0 0 2 0 0 0 0 ]

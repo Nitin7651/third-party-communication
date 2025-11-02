@@ -1,0 +1,8 @@
+[20796:6784:1031/105700.314:INFO:components\enterprise\browser\controller\chrome_browser_cloud_management_controller.cc:206] No machine level policy manager exists.
+[16400:8996:1031/105701.740:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[20976:8464:1031/105702.369:VERBOSE1:components\viz\service\main\viz_main_impl.cc:86] VizNullHypothesis is disabled (not a warning)
+[11680:11616:1031/105702.889:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[16344:20272:1031/105704.004:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[14400:21872:1031/105705.104:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[4428:21984:1031/105705.239:INFO:third_party\webrtc\rtc_base\cpu_info.cc:75] Available number of cores: 8
+[20796:6784:1031/105706.003:INFO:CONSOLE:113] "Event handler of 'x-storagemutated-1' event must be added on the initial evaluation of worker script.", source: https://static.whatsapp.net/rsrc.php/v4/yW/r/T5pO-4TRETt.js (113)

@@ -1,0 +1,27 @@
+2025/10/31-10:57:06.070 4c08 Reusing MANIFEST C:\Users\shiva\Downloads\third party communication\whatsapp_session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/10/31-10:57:06.072 4c08 Recovering log #104
+2025/10/31-10:57:06.168 4c08 Reusing old log C:\Users\shiva\Downloads\third party communication\whatsapp_session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000104.log 
+2025/10/31-10:57:06.168 4c08 Delete type=2 #102
+2025/10/31-10:57:06.169 4c08 Delete type=2 #103
+2025/10/31-10:57:06.169 4c08 Delete type=2 #105
+2025/10/31-10:57:08.717 519c Level-0 table #110: started
+2025/10/31-10:57:08.744 519c Level-0 table #110: 431715 bytes OK
+2025/10/31-10:57:08.746 519c Delete type=0 #104
+2025/10/31-10:57:08.748 519c Manual compaction at level-0 from '\x00+\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00,\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/31-10:57:11.187 4c08 Compacting 1@1 + 2@2 files
+2025/10/31-10:57:11.248 4c08 Generated table #111@1: 39732 keys, 2199381 bytes
+2025/10/31-10:57:11.266 4c08 Generated table #112@1: 16004 keys, 543108 bytes
+2025/10/31-10:57:11.266 4c08 Compacted 1@1 + 2@2 files => 2742489 bytes
+2025/10/31-10:57:11.267 4c08 compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/10/31-10:57:11.268 4c08 Delete type=2 #106
+2025/10/31-10:57:11.268 4c08 Delete type=2 #107
+2025/10/31-10:57:11.268 4c08 Delete type=2 #110
+2025/10/31-10:57:17.601 3d74 Level-0 table #114: started
+2025/10/31-10:57:17.619 3d74 Level-0 table #114: 551624 bytes OK
+2025/10/31-10:57:17.621 3d74 Delete type=0 #109
+2025/10/31-10:57:17.622 3d74 Manual compaction at level-0 from '\x00,\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00-\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/31-10:57:20.235 3d74 Compacting 1@1 + 2@2 files
+2025/10/31-10:57:20.296 3d74 Generated table #115@1: 40633 keys, 2229755 bytes
+2025/10/31-10:57:20.311 3d74 Generated table #116@1: 17233 keys, 613765 bytes
+2025/10/31-10:57:20.312 3d74 Compacted 1@1 + 2@2 files => 2843520 bytes
+2025/10/31-10:57:20.313 3d74 compacted to: files[ 0 0 2 0 0 0 0 ]

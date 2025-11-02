@@ -1,19 +1,26 @@
-package third.party.communication.whatsapp.dto; // Adjust package name if needed
+package third.party.communication.whatsapp.dto; // Adjust package
 
+import jakarta.persistence.*; // <-- Import Jakarta Persistence
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-@NoArgsConstructor // Default constructor needed for JSON parsing if used in requests
-@AllArgsConstructor // Constructor for creating objects easily
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity // <-- Mark as an Entity
+@Table(name = "contacts") // <-- Define table name
 public class Contact {
-    private String name;
-    private String number;
 
-    // Manual Getters/Setters/Constructors if not using Lombok
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Primary Key
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false, unique = true) // Numbers should be unique
+    private String number; // Store the cleaned 10-digit number
 }
